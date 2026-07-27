@@ -1,32 +1,35 @@
 {
-    "^PW": {
-        "keyword": "PRINT_WIDTH",
+    "PRINT_WIDTH": {
+        "operator": "^",
+        "mnemonic": "PW",
         "parameters": [
             {
                 "name": "width",
                 "type": "INTEGER",
-                "validation_type": "MIN_MAX",
+                "validation_type": "RANGE",
                 "min": 2,
                 "max": 9999,
                 "default_value": 2
             }
         ]
     },
-    "^SZ": {
-        "keyword": "ZPL_MODE",
+    "ZPL_MODE": {
+        "operator": "^",
+        "mnemonic": "SZ",
         "parameters": [
             {
                 "name": "version",
                 "type": "INTEGER",
-                "validation_type": "MIN_MAX",
+                "validation_type": "RANGE",
                 "min": 1,
                 "max": 2,
                 "default_value": 2
             }
         ]
     },
-    "^JM": {
-        "keyword": "DOTS_PER_MM",
+    "DOTS_PER_MM": {
+        "operator": "^",
+        "mnemonic": "JM",
         "parameters": [
             {
                 "name": "dots per mm",
@@ -37,8 +40,9 @@
             }
         ]
     },
-    "^MC": {
-        "keyword": "BITMAP_CLEAR",
+    "BITMAP_CLEAR": {
+        "operator": "^",
+        "mnemonic": "MC",
         "parameters": [
             {
                 "name": "map clear",
@@ -49,8 +53,9 @@
             }
         ]
     },
-    "^PM": {
-        "keyword": "MIRROR_IMAGE",
+    "MIRROR_IMAGE": {
+        "operator": "^",
+        "mnemonic": "PM",
         "parameters": [
             {
                 "name": "mirror iamge",
@@ -61,8 +66,9 @@
             }
         ]
     },
-    "~JS": {
-        "keyword": "BACKFEED_SEQ",
+    "BACKFEED_SEQ": {
+        "operator": "~",
+        "mnemonic": "JS",
         "parameters": [
             {
                 "name": "backfeed order",
@@ -73,8 +79,9 @@
             }
         ]
     },
-    "^JZ": {
-        "keyword": "REPRINT_AFTER_ERROR",
+    "REPRINT_AFTER_ERROR": {
+        "operator": "^",
+        "mnemonic": "JZ",
         "parameters": [
             {
                 "name": "reprint after error",
@@ -85,13 +92,14 @@
             }
         ]
     },
-    "^LH": {
-        "keyword": "LABEL_HOME",
+    "LABEL_HOME": {
+        "operator": "^",
+        "mnemonic": "LH",
         "parameters": [
             {
                 "name": "x-axis",
                 "type": "INTEGER",
-                "validation_type": "MIN_MAX",
+                "validation_type": "RANGE",
                 "min": 0,
                 "max": 32000,
                 "default_value": 0
@@ -99,15 +107,16 @@
             {
                 "name": "y-axis",
                 "type": "INTEGER",
-                "validation_type": "MIN_MAX",
+                "validation_type": "RANGE",
                 "min": 0,
                 "max": 32000,
                 "default_value": 0
             }
         ]
     },
-    "^LR": {
-        "keyword": "REVERSE_PRINT",
+    "REVERSE_PRINT": {
+        "operator": "^",
+        "mnemonic": "LR",
         "parameters": [
             {
                 "name": "reverse print",
@@ -118,8 +127,9 @@
             }
         ]
     },
-    "^A": {
-        "keyword": "FONT",
+    "FONT": {
+        "operator": "^",
+        "mnemonic": "A",
         "parameters": [
             {
                 "name": "font name",
@@ -138,7 +148,7 @@
             {
                 "name": "height",
                 "type": "INTEGER",
-                "validation_type": "MIN_MAX",
+                "validation_type": "RANGE",
                 "min": 10,
                 "max": 32000,
                 "default_value": 10
@@ -146,15 +156,16 @@
             {
                 "name": "width",
                 "type": "INTEGER",
-                "validation_type": "MIN_MAX",
+                "validation_type": "RANGE",
                 "min": 10,
                 "max": 32000,
                 "default_value": 10
             }
         ]
     },
-    "^FD": {
-        "keyword": "TEXT",
+    "TEXT": {
+        "operator": "^",
+        "mnemonic": "FD",
         "parameters": [
             {
                 "name": "text",
@@ -164,13 +175,14 @@
             }
         ]
     },
-    "^BY": {
-        "keyword": "LINEAR_BARCODE_CONFIG",
+    "LINEAR_BARCODE_CONFIG": {
+        "operator": "^",
+        "mnemonic": "BY",
         "parameters": [
             {
                 "name": "module width",
                 "type": "INTEGER",
-                "validation_type": "MIN_MAX",
+                "validation_type": "RANGE",
                 "min": 1,
                 "max": 10,
                 "default_value": 2
@@ -178,7 +190,7 @@
             {
                 "name": "wide-to-narrow bar width ratio",
                 "type": "FLOAT",
-                "validation_type": "MIN_MAX_STEP",
+                "validation_type": "RANGE",
                 "min": 2.0,
                 "max": 3.0,
                 "step": 0.1,
@@ -187,15 +199,16 @@
             {
                 "name": "barcode height",
                 "type": "INTEGER",
-                "validation_type": "MIN_MAX",
+                "validation_type": "RANGE",
                 "min": 10,
                 "max": 32000,
                 "default_value": 10
             }
         ]
     },
-    "^B3": {
-        "keyword": "CODE39_CONFIG",
+    "CODE39_CONFIG": {
+        "operator": "^",
+        "mnemonic": "B3",
         "parameters": [
             {
                 "name": "orientation",
@@ -210,6 +223,14 @@
                 "validation_type": "LIST",
                 "options": ["Y", "N"],
                 "default_value": "N"
+            },
+            {
+                "name": "barcode height",
+                "type": "INTEGER",
+                "validation_type": "RANGE",
+                "min": 1,
+                "max": 32000,
+                "default_value": 1
             },
             {
                 "name": "print value below barcode",
@@ -227,13 +248,14 @@
             }
         ]
     },
-    "^GB": {
-        "keyword": "BOX",
+    "BOX": {
+        "operator": "^",
+        "mnemonic": "GB",
         "parameters": [
             {
                 "name": "width",
                 "type": "INTEGER",
-                "validation_type": "MIN_MAX",
+                "validation_type": "RANGE",
                 "min": 1,
                 "max": 32000,
                 "default_value": 1
@@ -241,7 +263,7 @@
             {
                 "name": "height",
                 "type": "INTEGER",
-                "validation_type": "MIN_MAX",
+                "validation_type": "RANGE",
                 "min": 1,
                 "max": 32000,
                 "default_value": 1
@@ -249,7 +271,7 @@
             {
                 "name": "border thickness",
                 "type": "INTEGER",
-                "validation_type": "MIN_MAX",
+                "validation_type": "RANGE",
                 "min": 1,
                 "max": 32000,
                 "default_value": 1
@@ -264,145 +286,58 @@
             {
                 "name": "degree of corner rounding",
                 "type": "INTEGER",
-                "validation_type": "MIN_MAX",
+                "validation_type": "RANGE",
                 "min": 0,
                 "max": 8,
                 "default_value": 0
             }
         ]
     },
-    "^FT": {
-        "keyword": "BEGIN_FIELD: TEXT",
+    "LABEL": {
+        "operator": "^",
+        "mnemonic": "ZL",
         "parameters": [
             {
-                "name": "label",
+                "name": "text",
                 "type": "STRING",
                 "validation_type": "NONE",
                 "default_value": ""
-            },
-            {
-                "name": "x_pos",
-                "type": "INTEGER",
-                "validation_type": "MIN_MAX",
-                "min": 0,
-                "max": 32000,
-                "default_value": 0
-            },
-            {
-                "name": "y_pos",
-                "type": "INTEGER",
-                "validation_type": "MIN_MAX",
-                "min": 0,
-                "max": 32000,
-                "default_value": 0
-            },
-            {
-                "name": "justification",
-                "type": "INTEGER",
-                "validation_type": "MIN_MAX",
-                "min": 0,
-                "max": 32000,
-                "default_value": 0
-            },
-            {
-                "name": "font",
-                "type": "COMMAND",
-                "command": "^A"
-            },
-            {
-                "name": "text",
-                "type": "COMMAND",
-                "command": "^FD"
             }
         ]
     },
-    "^FO_CODE39": {
-        "keyword": "BEGIN_FIELD: LINEAR_BARCODE_CODE39",
+    "POSITION": {
+        "operator": "^",
+        "mnemonic": "ZP",
         "parameters": [
             {
-                "name": "label",
-                "type": "STRING",
-                "validation_type": "NONE",
-                "default_value": ""
-            },
-            {
-                "name": "x_pos",
+                "name": "x-pos",
                 "type": "INTEGER",
-                "validation_type": "MIN_MAX",
+                "validation_type": "RANGE",
                 "min": 0,
                 "max": 32000,
                 "default_value": 0
             },
             {
-                "name": "y_pos",
+                "name": "y-pos",
                 "type": "INTEGER",
-                "validation_type": "MIN_MAX",
+                "validation_type": "RANGE",
                 "min": 0,
                 "max": 32000,
                 "default_value": 0
-            },
-            {
-                "name": "justification",
-                "type": "INTEGER",
-                "validation_type": "MIN_MAX",
-                "min": 0,
-                "max": 32000,
-                "default_value": 0
-            },
-            {
-                "name": "linear_barcode_config",
-                "type": "COMMAND",
-                "command": "^BY"
-            },
-            {
-                "name": "code39_barcode_config",
-                "type": "COMMAND",
-                "command": "^B3"
-            },
-            {
-                "name": "text",
-                "type": "COMMAND",
-                "command": "^FD"
             }
         ]
     },
-    "^FO_GRAPHIC_BOX": {
-        "keyword": "BEGIN_FIELD: GRAPHIC_BOX",
+    "JUSTIFICATION": {
+        "operator": "^",
+        "mnemonic": "ZJ",
         "parameters": [
-            {
-                "name": "label",
-                "type": "STRING",
-                "validation_type": "NONE",
-                "default_value": ""
-            },
-            {
-                "name": "x_pos",
-                "type": "INTEGER",
-                "validation_type": "MIN_MAX",
-                "min": 0,
-                "max": 32000,
-                "default_value": 0
-            },
-            {
-                "name": "y_pos",
-                "type": "INTEGER",
-                "validation_type": "MIN_MAX",
-                "min": 0,
-                "max": 32000,
-                "default_value": 0
-            },
             {
                 "name": "justification",
                 "type": "INTEGER",
-                "validation_type": "MIN_MAX",
+                "validation_type": "RANGE",
                 "min": 0,
-                "max": 32000,
+                "max": 2,
                 "default_value": 0
-            },
-            {
-                "name": "box",
-                "type": "COMMAND",
-                "command": "^GB"
             }
         ]
     }

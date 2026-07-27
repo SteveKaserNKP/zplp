@@ -1,71 +1,65 @@
 DEF SMALL_FONT 0R,18,18
-DEF MID_FONT 0R,20,30
+DEF MED_FONT 0R,20,30
 DEF LARGE_FONT 0R,30,40
 
 DEF JUSTIFICATION 0
 
 DEF TOP_MARGIN 20
 
-DEF DEFAULT_BOX 3,780,3
+DEF DEFAULT_BOX 3,780,3,B,0
 
-DEF LINEAR_BARCODE_CONFIG 2,2.7,8
+DEF LINEAR_BARCODE_CONFIG 2,2.7,10
 DEF CODE39_CONFIG_VALUES R,N,50,N,N
 
 BEGIN_DOCUMENT
 
-    BEGIN_SECTION: Label/Printer Setup
-        PRINT_WIDTH 507
-        ZPL_MODE 2
-        DOTS_PER_MM A
-        BITMAP_CLEAR Y
-        MIRROR_IMAGE N
-        BACKFEED_SEQ N
-        REPRINT_AFTER_ERROR Y
-        LABEL_HOME 0,0
-        REVERSE_PRINT N
+    BEGIN_SECTION::Label/Printer Setup
+        BEGIN_FIELD::SETUP::Label/Printer Setup
+            PRINT_WIDTH 507
+            ZPL_MODE 2
+            DOTS_PER_MM A
+            BITMAP_CLEAR Y
+            MIRROR_IMAGE N
+            BACKFEED_SEQ N
+            REPRINT_AFTER_ERROR Y
+            LABEL_HOME 0,0
+            REVERSE_PRINT N
+        END_FIELD
     END_SECTION
 
-    BEGIN_SECTION: PART NO. BLOCK
+    BEGIN_SECTION::PART NO. BLOCK
 
-        BEGIN_FIELD: TEXT
-            LABEL "Part No." text
-            X_POS 485
-            Y_POS *TOP_MARGIN
+        BEGIN_FIELD::TEXT::"Part No." text
+            POSITION 485, *TOP_MARGIN
             JUSTIFICATION *JUSTIFICATION
-            FONT *MID_FONT
+            FONT *MED_FONT
             TEXT PART NO.
         END_FIELD
 
-        BEGIN_FIELD: TEXT
-            LABEL "(P)" text
-            X_POS 460
-            Y_POS *TOP_MARGIN
-            FONT *MID_FONT
+        BEGIN_FIELD::TEXT::"(P)" text
+            POSITION 460, *TOP_MARGIN
+            JUSTIFICATION *JUSTIFICATION
+            FONT *MED_FONT
             TEXT (P)
         END_FIELD
 
-        BEGIN_FIELD: TEXT
-            LABEL Part No. data
-            X_POS 460
-            Y_POS 120
+        BEGIN_FIELD::TEXT::Part No. data
+            POSITION 460, 150
+            JUSTIFICATION *JUSTIFICATION
             FONT *LARGE_FONT
             TEXT {PART_NO::3880069F A000M1}
         END_FIELD
 
-        BEGIN_FIELD: LINEAR_BARCODE_CODE39
-            LABEL: Part No. barcode
-            X_POS 400
-            Y_POS 65
+        BEGIN_FIELD::LINEAR_BARCODE_CODE39::Part No. barcode
+            POSITION 400, 65
             JUSTIFICATION *JUSTIFICATION
             LINEAR_BARCODE_CONFIG *LINEAR_BARCODE_CONFIG
             CODE39_CONFIG *CODE39_CONFIG_VALUES
             TEXT {PART_NO_BARCODE::P3880069F A000M1}
         END_FIELD
 
-        BEGIN_FIELD: GRAPHIC_BOX
-            LABEL Line under Part No. field
-            X_POS 380
-            Y_POS 15
+        BEGIN_FIELD::GRAPHIC_BOX::Line under Part No. field
+            POSITION 380, 15
             JUSTIFICATION *JUSTIFICATION
             BOX *DEFAULT_BOX
         END_FIELD
