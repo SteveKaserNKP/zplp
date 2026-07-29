@@ -15,15 +15,8 @@ BEGIN_DOCUMENT
 
     BEGIN_SECTION::Label/Printer Setup
         BEGIN_FIELD::SETUP::Label/Printer Setup
-            PRINT_WIDTH 507
-            ZPL_MODE 2
-            DOTS_PER_MM A
-            BITMAP_CLEAR Y
-            MIRROR_IMAGE N
-            BACKFEED_SEQ N
-            REPRINT_AFTER_ERROR Y
-            LABEL_HOME 0,0
-            REVERSE_PRINT N
+            DIMENSION 102, 63
+            MARGIN 1,1,1,1
         END_FIELD
     END_SECTION
 

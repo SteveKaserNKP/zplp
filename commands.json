@@ -175,6 +175,66 @@
             }
         ]
     },
+    "DIMENSION": {
+        "operator": "^",
+        "mnemonic": "XD",
+        "parameters": [
+            {
+                "name": "width (in millimeters)",
+                "type": "INTEGER",
+                "validation_type": "RANGE",
+                "min": 1,
+                "max": 32000,
+                "default_value": 1
+            },
+            {
+                "name": "height (in millimeters)",
+                "type": "INTEGER",
+                "validation_type": "RANGE",
+                "min": 1,
+                "max": 32000,
+                "default_value": 1
+            }
+        ]
+    },
+    "MARGIN": {
+        "operator": "^",
+        "mnemonic": "XM",
+        "parameters": [
+            {
+                "name": "top (in millimeters)",
+                "type": "INTEGER",
+                "validation_type": "RANGE",
+                "min": 1,
+                "max": 32000,
+                "default_value": 1
+            },
+            {
+                "name": "right (in millimeters)",
+                "type": "INTEGER",
+                "validation_type": "RANGE",
+                "min": 1,
+                "max": 32000,
+                "default_value": 1
+            },
+            {
+                "name": "bottom (in millimeters)",
+                "type": "INTEGER",
+                "validation_type": "RANGE",
+                "min": 1,
+                "max": 32000,
+                "default_value": 1
+            },
+            {
+                "name": "left (in millimeters)",
+                "type": "INTEGER",
+                "validation_type": "RANGE",
+                "min": 1,
+                "max": 32000,
+                "default_value": 1
+            }
+        ]
+    },
     "LINEAR_BARCODE_CONFIG": {
         "operator": "^",
         "mnemonic": "BY",
