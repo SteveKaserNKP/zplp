@@ -175,66 +175,6 @@
             }
         ]
     },
-    "DIMENSION": {
-        "operator": "^",
-        "mnemonic": "XD",
-        "parameters": [
-            {
-                "name": "width (in millimeters)",
-                "type": "INTEGER",
-                "validation_type": "RANGE",
-                "min": 1,
-                "max": 32000,
-                "default_value": 1
-            },
-            {
-                "name": "height (in millimeters)",
-                "type": "INTEGER",
-                "validation_type": "RANGE",
-                "min": 1,
-                "max": 32000,
-                "default_value": 1
-            }
-        ]
-    },
-    "MARGIN": {
-        "operator": "^",
-        "mnemonic": "XM",
-        "parameters": [
-            {
-                "name": "top (in millimeters)",
-                "type": "INTEGER",
-                "validation_type": "RANGE",
-                "min": 1,
-                "max": 32000,
-                "default_value": 1
-            },
-            {
-                "name": "right (in millimeters)",
-                "type": "INTEGER",
-                "validation_type": "RANGE",
-                "min": 1,
-                "max": 32000,
-                "default_value": 1
-            },
-            {
-                "name": "bottom (in millimeters)",
-                "type": "INTEGER",
-                "validation_type": "RANGE",
-                "min": 1,
-                "max": 32000,
-                "default_value": 1
-            },
-            {
-                "name": "left (in millimeters)",
-                "type": "INTEGER",
-                "validation_type": "RANGE",
-                "min": 1,
-                "max": 32000,
-                "default_value": 1
-            }
-        ]
-    },
     "LINEAR_BARCODE_CONFIG": {
         "operator": "^",
         "mnemonic": "BY",
@@ -353,9 +293,45 @@
             }
         ]
     },
+    "DIMENSIONS": {
+        "operator": "%",
+        "mnemonic": "XD",
+        "parameters": [
+            {
+                "name": "width (in millimeters)",
+                "type": "INTEGER",
+                "validation_type": "RANGE",
+                "min": 1,
+                "max": 32000,
+                "default_value": 1
+            },
+            {
+                "name": "height (in millimeters)",
+                "type": "INTEGER",
+                "validation_type": "RANGE",
+                "min": 1,
+                "max": 32000,
+                "default_value": 1
+            }
+        ]
+    },
+    "JUSTIFICATION": {
+        "operator": "%",
+        "mnemonic": "XJ",
+        "parameters": [
+            {
+                "name": "justification",
+                "type": "INTEGER",
+                "validation_type": "RANGE",
+                "min": 0,
+                "max": 2,
+                "default_value": 0
+            }
+        ]
+    },
     "LABEL": {
-        "operator": "^",
-        "mnemonic": "ZL",
+        "operator": "%",
+        "mnemonic": "XL",
         "parameters": [
             {
                 "name": "text",
@@ -365,9 +341,61 @@
             }
         ]
     },
+    "DPMM": {
+        "operator": "%",
+        "mnemonic": "XN",
+        "parameters": [
+            {
+                "name": "dots per mm for printer",
+                "type": "INTEGER",
+                "validation_type": "RANGE",
+                "min": 1,
+                "max": 32000,
+                "default_value": 1
+            }
+        ]
+    },
+    "MARGINS": {
+        "operator": "%",
+        "mnemonic": "XM",
+        "parameters": [
+            {
+                "name": "top (in millimeters)",
+                "type": "INTEGER",
+                "validation_type": "RANGE",
+                "min": 1,
+                "max": 32000,
+                "default_value": 1
+            },
+            {
+                "name": "right (in millimeters)",
+                "type": "INTEGER",
+                "validation_type": "RANGE",
+                "min": 1,
+                "max": 32000,
+                "default_value": 1
+            },
+            {
+                "name": "bottom (in millimeters)",
+                "type": "INTEGER",
+                "validation_type": "RANGE",
+                "min": 1,
+                "max": 32000,
+                "default_value": 1
+            },
+            {
+                "name": "left (in millimeters)",
+                "type": "INTEGER",
+                "validation_type": "RANGE",
+                "min": 1,
+                "max": 32000,
+                "default_value": 1
+            }
+        ]
+    },
     "POSITION": {
-        "operator": "^",
-        "mnemonic": "ZP",
+        "operator": "%",
+        "mnemonic": "XP",
         "parameters": [
             {
                 "name": "x-pos",
@@ -383,20 +411,6 @@
                 "validation_type": "RANGE",
                 "min": 0,
                 "max": 32000,
-                "default_value": 0
-            }
-        ]
-    },
-    "JUSTIFICATION": {
-        "operator": "^",
-        "mnemonic": "ZJ",
-        "parameters": [
-            {
-                "name": "justification",
-                "type": "INTEGER",
-                "validation_type": "RANGE",
-                "min": 0,
-                "max": 2,
                 "default_value": 0
             }
         ]

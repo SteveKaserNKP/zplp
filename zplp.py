@@ -7,6 +7,13 @@ from utils import *
 class ZPL_Operator(Enum):
     CARET = 0
     TILDE = 1
+    PERC = 2
+
+class ZPL_DPMM(Enum):
+    MM_6 = 152
+    MM_8 = 203
+    MM_12 = 300
+    MM_24 = 600
 
 class ZPLP_Field_Type(Enum):
     UNKNOWN = 0
@@ -62,6 +69,20 @@ class Block_Begin_Line(Line):
 class Block_End_Line(Line):
     block_type: Block_Type
     label: str = ""
+
+@dataclass
+class ZPLP_Dimensions:
+    width_mm: float = 0
+    height_mm: float = 0
+    width_in: float = 0
+    height_in: float = 0
+
+@dataclass
+class ZPLP_Margins:
+    top_mm: float = 0
+    right_mm: float = 0
+    bottom_mm: float = 0
+    left_mm: float = 0
 
 @dataclass
 class ZPLP_Command_Line(Line):
@@ -215,9 +236,15 @@ class ZPLP_Command_Value:
             return "^"
         if self.schema.operator == ZPL_Operator.TILDE:
             return "~"
+        if self.schema.operator == ZPL_Operator.PERC:
+            return "%"
         raise ValueError(f"Unhandled operator: {self.schema.operator}")
 
     def get_zpl(self) -> str:
+        # if self.schema.operator == ZPL_Operator.PERC:
+        #     # if self.schema.keyword == 
+        #     ...
+        # else:
         zpl = f"  {self.get_operator()}{self.schema.mnemonic}"
         for i, p in enumerate(self.parameters):
             if i == 0:
@@ -298,6 +325,9 @@ class ZPLP_File:
     commands: list[ZPLP_Command_Schema] = field(default_factory=list)
     lines: list[Line] = field(default_factory=list)
     defines: dict[str, str] = field(default_factory=dict)
+    dpmm: ZPL_DPMM = ZPL_DPMM.MM_8
+    dimensions: ZPLP_Dimensions = field(default_factory=ZPLP_Dimensions)
+    margins: ZPLP_Margins = field(default_factory=ZPLP_Margins)
 
     def __post_init__(self):
         zplp_fp = Path(self.zplp_file_path)
@@ -327,6 +357,8 @@ class ZPLP_File:
                 op = ZPL_Operator.CARET
             elif command["operator"] == "~":
                 op = ZPL_Operator.TILDE
+            elif command["operator"] == "%":
+                op = ZPL_Operator.PERC
             else:
                 raise ValueError(f"{command["operator"]} is not a valid operator!")
             mn = command["mnemonic"]
@@ -652,7 +684,19 @@ class ZPLP_File:
                 zpl += f"^FX{f.label}\n"
                 if f.type == ZPLP_Field_Type.SETUP:
                     for c in f.commands:
-                        zpl += c.get_zpl()
+                        if c.schema.operator == ZPL_Operator.PERC:
+                            match c.schema.keyword:
+                                case 'DPMM':
+                                    if c.get_parameter("dots per mm for printer") == 6: self.dpmm = ZPL_DPMM.MM_6
+                                    elif c.get_parameter("dots per mm for printer") == 8: self.dpmm = ZPL_DPMM.MM_8
+                                    elif c.get_parameter("dots per mm for printer") == 12: self.dpmm = ZPL_DPMM.MM_12
+                                    elif c.get_parameter("dots per mm for printer") == 24: self.dpmm = ZPL_DPMM.MM_24
+                                    else: self.dpmm = ZPL_DPMM.MM_8
+                                case 'DIMENSIONS': ...
+                                case 'MARGINS': ...
+                                case _: ...
+                        else:
+                            zpl += c.get_zpl()
                 elif f.type == ZPLP_Field_Type.TEXT:
                     pos = f.get_command("POSITION")
                     just = f.get_command("JUSTIFICATION")
