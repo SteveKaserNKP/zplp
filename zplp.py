@@ -241,10 +241,6 @@ class ZPLP_Command_Value:
         raise ValueError(f"Unhandled operator: {self.schema.operator}")
 
     def get_zpl(self) -> str:
-        # if self.schema.operator == ZPL_Operator.PERC:
-        #     # if self.schema.keyword == 
-        #     ...
-        # else:
         zpl = f"  {self.get_operator()}{self.schema.mnemonic}"
         for i, p in enumerate(self.parameters):
             if i == 0:
@@ -261,6 +257,10 @@ class ZPLP_Field:
     type: ZPLP_Field_Type = ZPLP_Field_Type.UNKNOWN
     field_origin_mnemonic: ZPLP_Field_Origin_Mnemonic = ZPLP_Field_Origin_Mnemonic.FO
     commands: list[ZPLP_Command_Value] = field(default_factory=list)
+
+    def command_exists(self, kw: str) -> bool:
+        command = [c for c in self.commands if c.schema.keyword == kw]
+        return len(command) > 0
 
     def get_command(self, kw: str) -> ZPLP_Command_Value:
         command = [c for c in self.commands if c.schema.keyword == kw]
@@ -328,6 +328,10 @@ class ZPLP_File:
     dpmm: ZPL_DPMM = ZPL_DPMM.MM_8
     dimensions: ZPLP_Dimensions = field(default_factory=ZPLP_Dimensions)
     margins: ZPLP_Margins = field(default_factory=ZPLP_Margins)
+    printable_width_dots: float = 0
+    printable_height_dots: float = 0
+    home_x_dots: int = 0
+    home_y_dots: int = 0
 
     def __post_init__(self):
         zplp_fp = Path(self.zplp_file_path)
@@ -348,6 +352,14 @@ class ZPLP_File:
         if fp.suffix not in [".zplp", ".json"]:
             return (False, f"{fp} is not a valid file type!")
         return (True, "")
+
+    def _get_dpmm_value(self, d: ZPL_DPMM) -> int:
+        match d:
+            case ZPL_DPMM.MM_6: return 6
+            case ZPL_DPMM.MM_8: return 8
+            case ZPL_DPMM.MM_12: return 12
+            case ZPL_DPMM.MM_24: return 24
+            case _: raise ValueError(f"Unhandled DPMM: {d}")
 
     def load_commands(self, fp: Path) -> None:
         json_commands = read_json_file(fp)
@@ -613,7 +625,10 @@ class ZPLP_File:
             if raw_arguments_str[1:] not in self.defines:
                 raise ValueError(f"{raw_arguments_str[1:]} is not defined!")
             raw_arguments_str = self.defines[raw_arguments_str[1:]]
-        raw_tokens = raw_arguments_str.split(",") if raw_arguments_str.strip() else []
+        if raw_arguments_str.startswith("{") and raw_arguments_str.endswith("}"):
+            raw_tokens = [raw_arguments_str]
+        else:
+            raw_tokens = raw_arguments_str.split(",") if raw_arguments_str.strip() else []
         if schema.keyword == "FONT":
             if len(raw_tokens[0]) == 2:
                 font_name, orientation = raw_tokens[0]
@@ -683,24 +698,48 @@ class ZPLP_File:
             for f in section.fields:
                 zpl += f"^FX{f.label}\n"
                 if f.type == ZPLP_Field_Type.SETUP:
-                    for c in f.commands:
-                        if c.schema.operator == ZPL_Operator.PERC:
-                            match c.schema.keyword:
-                                case 'DPMM':
-                                    if c.get_parameter("dots per mm for printer") == 6: self.dpmm = ZPL_DPMM.MM_6
-                                    elif c.get_parameter("dots per mm for printer") == 8: self.dpmm = ZPL_DPMM.MM_8
-                                    elif c.get_parameter("dots per mm for printer") == 12: self.dpmm = ZPL_DPMM.MM_12
-                                    elif c.get_parameter("dots per mm for printer") == 24: self.dpmm = ZPL_DPMM.MM_24
-                                    else: self.dpmm = ZPL_DPMM.MM_8
-                                case 'DIMENSIONS': ...
-                                case 'MARGINS': ...
-                                case _: ...
-                        else:
-                            zpl += c.get_zpl()
+                    percs = [c for c in f.commands if c.schema.operator == ZPL_Operator.PERC]
+                    for p in percs:
+                        match p.schema.keyword:
+                            case 'DPMM':
+                                if p.get_parameter("dots per mm for printer").value == 6: self.dpmm = ZPL_DPMM.MM_6
+                                elif p.get_parameter("dots per mm for printer").value == 8: self.dpmm = ZPL_DPMM.MM_8
+                                elif p.get_parameter("dots per mm for printer").value == 12: self.dpmm = ZPL_DPMM.MM_12
+                                elif p.get_parameter("dots per mm for printer").value == 24: self.dpmm = ZPL_DPMM.MM_24
+                                else: self.dpmm = ZPL_DPMM.MM_8
+                            case 'DIMENSIONS':
+                                wmm = p.get_parameter("width (in millimeters)").value
+                                hmm = p.get_parameter("height (in millimeters)").value
+                                win = round(wmm / 25.4, 1)
+                                hin = round(hmm / 25.4, 1)
+                                self.dimensions.width_mm = wmm
+                                self.dimensions.height_mm = hmm
+                                self.dimensions.width_in = win
+                                self.dimensions.height_in = hin
+                            case 'MARGINS':
+                                self.margins.top_mm = p.get_parameter("top (in millimeters)").value
+                                self.margins.right_mm = p.get_parameter("right (in millimeters)").value
+                                self.margins.bottom_mm = p.get_parameter("bottom (in millimeters)").value
+                                self.margins.left_mm = p.get_parameter("left (in millimeters)").value
+                            case _:
+                                raise ValueError(f"Unhandled custom Setup command: {p.schema.keyword}!")
+                    self.printable_width_dots = (self.dimensions.width_mm - (self.margins.right_mm + self.margins.left_mm)) * self._get_dpmm_value(self.dpmm)
+                    self.printable_height_dots = (self.dimensions.height_mm - (self.margins.top_mm + self.margins.bottom_mm)) * self._get_dpmm_value(self.dpmm)
+                    self.home_x_dots = int(self.margins.left_mm * self._get_dpmm_value(self.dpmm))
+                    self.home_y_dots = int(self.margins.top_mm * self._get_dpmm_value(self.dpmm))
+                    zpl += f"^PW{self.printable_width_dots}\n"
+                    zpl += f"^LL{self.printable_height_dots}\n"
+                    zpl += f"^LH{self.home_x_dots},{self.home_y_dots}\n"
+                    comms = [c for c in f.commands if c.schema.operator != ZPL_Operator.PERC]
+                    for c in comms:
+                        zpl += c.get_zpl()
                 elif f.type == ZPLP_Field_Type.TEXT:
                     pos = f.get_command("POSITION")
-                    just = f.get_command("JUSTIFICATION")
-                    zpl += f"  ^FT{pos.get_parameter("x-pos").value},{pos.get_parameter("y-pos").value},{just.get_parameter("justification").value}\n"
+                    if f.command_exists("JUSTIFICATION"):
+                        just = f.get_command("JUSTIFICATION").get_parameter("justification").value
+                    else:
+                        just = 0
+                    zpl += f"^FT{pos.get_parameter("x-pos").value},{pos.get_parameter("y-pos").value},{just}\n"
                     font = f.get_command("FONT")
                     zpl += f"  ^A{font.get_parameter("font name").value}{font.get_parameter("orientation").value},{font.get_parameter("height").value},{font.get_parameter("width").value}\n"
                     text = f.get_command("TEXT")
@@ -711,8 +750,11 @@ class ZPLP_File:
                         zpl += f"  ^FD{{{text.get_parameter("text").var_name}}}\n"
                 elif f.type == ZPLP_Field_Type.BARCODE:
                     pos = f.get_command("POSITION")
-                    just = f.get_command("JUSTIFICATION")
-                    zpl += f"  ^FO{pos.get_parameter("x-pos").value},{pos.get_parameter("y-pos").value},{just.get_parameter("justification").value}\n"
+                    if f.command_exists("JUSTIFICATION"):
+                        just = f.get_command("JUSTIFICATION").get_parameter("justification").value
+                    else:
+                        just = 0
+                    zpl += f"^FO{pos.get_parameter("x-pos").value},{pos.get_parameter("y-pos").value},{just}\n"
                     zpl += f.get_command("LINEAR_BARCODE_CONFIG").get_zpl()
                     zpl += f.get_command("CODE39_CONFIG").get_zpl()
                     text = f.get_command("TEXT")
@@ -723,24 +765,55 @@ class ZPLP_File:
                         zpl += f"  ^FD{{{text.get_parameter("text").var_name}}}\n"
                 elif f.type == ZPLP_Field_Type.GRAPHIC:
                     pos = f.get_command("POSITION")
-                    just = f.get_command("JUSTIFICATION")
-                    zpl += f"  ^FO{pos.get_parameter("x-pos").value},{pos.get_parameter("y-pos").value},{just.get_parameter("justification").value}\n"
+                    if f.command_exists("JUSTIFICATION"):
+                        just = f.get_command("JUSTIFICATION").get_parameter("justification").value
+                    else:
+                        just = 0
+                    zpl += f"^FO{pos.get_parameter("x-pos").value},{pos.get_parameter("y-pos").value},{just}\n"
                     zpl += f.get_command("BOX").get_zpl()
                 zpl += "^FS\n"
         zpl += "^XZ"
         return zpl
 
     def get_png(self, zpl: str) -> None:
-        url = 'http://api.labelary.com/v1/printers/8dpmm/labels/2.5x4/0/'
-        files = {'file' : zpl}
+        url = f"http://api.labelary.com/v1/printers/{self._get_dpmm_value(self.dpmm)}dpmm/labels/{self.dimensions.width_in}x{self.dimensions.height_in}/0/"
+        print(url)
+        files = {"file" : zpl}
         response = requests.post(url, files = files, stream = True)
-        # headers = {'Accept' : 'application/pdf'} # omit this line to get PNG images back
-        # response = requests.post(url, headers = headers, files = files, stream = True)
 
         if response.status_code == 200:
             response.raw.decode_content = True
-            with open('label.png', 'wb') as out_file: # change file name for PNG images
+            with open("label.png", "wb") as out_file:
                 shutil.copyfileobj(response.raw, out_file)
         else:
-            print('Error: ' + response.text)
+            print("Error: " + response.text)
 
+    def dump_zplp(self) -> None:
+        for d in self.defines:
+            print(f"{d} -> {self.defines[d]}")
+
+        print()
+
+        print(self.dpmm)
+        print(self.dimensions)
+        print(self.margins)
+
+        print()
+
+        if self.document is not None and self.document.sections is not None:
+            for s in self.document.sections:
+                print(f"{s.label}")
+                if s.fields is not None:
+                    for f in s.fields:
+                        print(f"\t{f.label}")
+                        for c in f.commands:
+                            print(f"\t\t{c.schema.keyword}:")
+                            for p in c.parameters:
+                                if len(p.var_name) > 0:
+                                    print(f"\t\t\t{p.schema.name} => {p.var_name} = {p.value}")
+                                else:
+                                    print(f"\t\t\t{p.schema.name} => {p.value}")
+
+    def save_to_file(self, file_path: str, zpl: str) -> None:
+        with open(file_path, 'w') as f:
+            f.write(zpl)
