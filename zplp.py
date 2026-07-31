@@ -628,7 +628,10 @@ class ZPLP_File:
         if raw_arguments_str.startswith("{") and raw_arguments_str.endswith("}"):
             raw_tokens = [raw_arguments_str]
         else:
-            raw_tokens = raw_arguments_str.split(",") if raw_arguments_str.strip() else []
+            if schema.keyword == "TEXT":
+                raw_tokens = [raw_arguments_str]
+            else:
+                raw_tokens = raw_arguments_str.split(",") if raw_arguments_str.strip() else []
         if schema.keyword == "FONT":
             if len(raw_tokens[0]) == 2:
                 font_name, orientation = raw_tokens[0]
