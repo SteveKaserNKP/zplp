@@ -20,7 +20,7 @@ BEGIN_DOCUMENT
     BEGIN_SECTION::PART NO. BLOCK
 
         BEGIN_FIELD::TEXT::"Part No." text
-            POSITION 0, 20
+            POSITION 0, 25
             FONT *MED_FONT
             TEXT PART NO.
         END_FIELD
