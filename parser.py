@@ -179,14 +179,19 @@ class ZPLP_Parser:
         return self.root
 
 class ZPL_Generator:
-    def __init__(self, root: AST_Node, identifiers: dict[str,str]):
+    def __init__(self, root: AST_Node, identifiers: dict[str,str], testing: bool):
         self.root = root
         self.identifiers = identifiers
+        self.testing = testing
         self.zpl_buffer = []
 
     def generate(self) -> str:
         self._walk(self.root)
         return "\n".join(self.zpl_buffer)
+
+    def save_zpl_to_file(self, fp: str, zpl: str):
+        with open(fp, 'w') as f:
+            f.write(zpl)
 
     def _walk(self, node: AST_Node):
         # 1. Document Wrappers
@@ -227,13 +232,17 @@ class ZPL_Generator:
                     return self._evaluate_setup_field(statements)
                 else:
                     field_buffer.append('^FO')
-            elif key in ['POSITION', 'FONT'] and value_tokens:
+            elif key in ['POSITION', 'FONT', 'LINEAR_BARCODE_CONFIG', 'CODE39_CONFIG', 'BOX'] and value_tokens:
                 if key == 'FONT':
                     field_buffer.append('^A')
+                elif key == 'LINEAR_BARCODE_CONFIG':
+                    field_buffer.append('^BY')
+                elif key == 'CODE39_CONFIG':
+                    field_buffer.append('^B3')
+                elif key == 'BOX':
+                    field_buffer.append('^GB')
                 for token in value_tokens:
-                    if token.type == ZPLP_Token_Type.COMMA:
-                        continue
-                    if token.type == ZPLP_Token_Type.STAR:
+                    if token.type in [ZPLP_Token_Type.COMMA, ZPLP_Token_Type.STAR]:
                         continue
                     elif token.type == ZPLP_Token_Type.IDENTIFIER:
                         if token.value not in self.identifiers:
@@ -244,6 +253,27 @@ class ZPL_Generator:
                         args.append(token.value)
                 if len(args):
                     field_buffer[-1] += ','.join(args)
+                    args = []
+            elif key == 'VALUE' and value_tokens:
+                field_buffer.append('^FD')
+                if value_tokens[0].type == ZPLP_Token_Type.OPEN_CURLY:
+                    found_double_colon = False
+                    for token in value_tokens:
+                        if token.type == ZPLP_Token_Type.LITERAL:
+                            if found_double_colon and self.testing:
+                                args.append(token.value)
+                            elif not found_double_colon and not self.testing:
+                                args.append(token.value)
+                        elif token.type == ZPLP_Token_Type.DOUBLE_COLON:
+                            found_double_colon = True
+                else:
+                    for token in value_tokens:
+                        args.append(token.value)
+                if len(args):
+                    if self.testing:
+                        field_buffer[-1] += ' '.join(args)
+                    else:
+                        field_buffer[-1] += '{' + ' '.join(args) + '}' 
                     args = []
         field_buffer.append('^FS')
         return '\n'.join(field_buffer)
@@ -336,7 +366,6 @@ abstract_tree = parser.parse()
 
 #print_tokenizer(tokenizer)
 
-generator = ZPL_Generator(abstract_tree, tokenizer.identifiers)
+generator = ZPL_Generator(abstract_tree, tokenizer.identifiers, True)
 zpl = generator.generate()
-print(zpl)
-
+generator.save_zpl_to_file('./test.zpl', zpl)
