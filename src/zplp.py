@@ -6,6 +6,7 @@ import shutil
 import json
 from pathlib import Path
 import sys
+import traceback
 
 KEYWORDS = ['DEF', 'BEGIN_DOCUMENT', 'END_DOCUMENT', 'BEGIN_SECTION', 'END_SECTION', 'BEGIN_FIELD', 'END_FIELD', 'SETUP', 'TEXT', 'LINEAR_BARCODE_CODE39', 'GRAPHIC_BOX']
 COMMANDS = ['DPMM', 'DIMENSIONS', 'MARGINS', 'POSITION', 'FONT', 'LINEAR_BARCODE_CONFIG', 'CODE39_CONFIG', 'BOX', 'TYPE', 'VALUE']
@@ -174,6 +175,10 @@ class ZPLP_Parser:
 
             # Case C: Handling Standard Body Variables & Configurations (Statements)
             else:
+                if self.stack[-1].type != 'FIELD' and line.tokens[0].value != 'DEF':
+                    print(self.stack[-1])
+                    print(line)
+                    raise SyntaxError('Commands must be placed inside of a FIELD block!')
                 statement_node = AST_Node(type='STATEMENT', payload=line.tokens)
                 self.stack[-1].children.append(statement_node)
 
@@ -184,10 +189,11 @@ class ZPLP_Parser:
         return self.root
 
 class ZPL_Generator:
-    def __init__(self, root: AST_Node, identifiers: dict[str,list[str]], testing: bool):
+    def __init__(self, root: AST_Node, identifiers: dict[str,list[str]], testing: bool, showBoundaryBox: bool):
         self.root = root
         self.identifiers = identifiers
         self.testing = testing
+        self.showBoundaryBox = showBoundaryBox
         self.zpl_buffer = []
         self.dpmm = 0
         self.dims_x_in = 0
@@ -228,10 +234,14 @@ class ZPL_Generator:
     def _evaluate_field(self, statements: list[AST_Node]) -> str:
         field_buffer = []
         args = []
+        found_type = False
         for stmt in statements:
             key = stmt.payload[0].value
+            if not found_type and key != 'TYPE':
+                raise SyntaxError(f'FIELD block must begin with a TYPE command!')
+            else:
+                found_type = True
             value_tokens = stmt.payload[1:]
-            #print(f'KEY: {key}: \n\t{value_tokens}')
             if key == 'TYPE' and value_tokens:
                 if value_tokens[0].value == 'TEXT':
                     field_buffer.append('^FT')
@@ -264,8 +274,8 @@ class ZPL_Generator:
                     args = []
             elif key == 'VALUE' and value_tokens:
                 field_buffer.append('^FD')
+                found_double_colon = False
                 if value_tokens[0].type == ZPLP_Token_Type.OPEN_CURLY:
-                    found_double_colon = False
                     for token in value_tokens:
                         if token.type == ZPLP_Token_Type.LITERAL:
                             if found_double_colon and self.testing:
@@ -278,7 +288,8 @@ class ZPL_Generator:
                     for token in value_tokens:
                         args.append(token.value)
                 if len(args):
-                    if self.testing:
+                    print(args)
+                    if self.testing or not found_double_colon:
                         field_buffer[-1] += ' '.join(args)
                     else:
                         field_buffer[-1] += '{' + ' '.join(args) + '}' 
@@ -331,9 +342,9 @@ class ZPL_Generator:
             else:
                 raise ValueError(f'Unhandled SETUP command: {key}')
 
-        pw = (x_dim - (right+left)) * dpmm
-        ll = (y_dim - (top+bottom)) * dpmm
-        x = int(left * dpmm)
+        pw = (x_dim - right - left) * dpmm
+        ll = (y_dim - top - bottom) * dpmm
+        # x = int(left * dpmm)
         y = int(top * dpmm)
 
         self.dpmm = dpmm
@@ -345,7 +356,12 @@ class ZPL_Generator:
         commands = []
         commands.append(f'^PW{pw}')
         commands.append(f'^LL{ll}')
-        commands.append(f'^LH{x},{y}')
+        # the x component of this will always be 0
+        # the printer sets the x component based on the PW command
+        commands.append(f'^LH0,{y}')
+        # only draw the bounding box if we're in development mode
+        if self.testing and self.showBoundaryBox:
+            commands.append(f'^FO0,0\n^GB{pw},{ll}\n^FS')
         return '\n'.join(commands)
 
     def get_png(self, zpl: str, output_fp: str) -> None:
@@ -382,9 +398,8 @@ def print_tokenizer(t: ZPLP_Tokenizer):
         for token in line.tokens:
             print(f"\t{token.type} => {token.value}")
 
-def validate_config(config_fp: str, schema_fp: str) -> dict[str, str | bool | Path]:
+def validate_config(config_fp: str) -> dict[str, str | bool | Path]:
     cfp = Path(config_fp).resolve()
-    sfp = Path(schema_fp).resolve()
     
     # Establish the base directory (the directory containing zplp.json)
     # This ensures relative paths inside the JSON are relative to the config file location
@@ -392,111 +407,103 @@ def validate_config(config_fp: str, schema_fp: str) -> dict[str, str | bool | Pa
 
     if not cfp.is_file():
         raise ValueError(f'Config file path does not exist: {config_fp}!')
-    if not sfp.is_file():
-        raise ValueError(f'Schema file path does not exist: {schema_fp}!')
 
     config = json.loads(cfp.read_text())
-    schema = json.loads(sfp.read_text())
-    schema_props = schema.get("properties", {})
-
-    def get_default(key: str):
-        return schema_props.get(key, {}).get("default")
-
-    # Inject defaults for optional fields if missing
-    if 'pngFileName' not in config:
-        config['pngFileName'] = get_default('pngFileName')
-        if not str(config['pngFileName']).lower().endswith('.png'):
-            config['pngFileName'] = config['pngFileName'] + '.png'
-    if 'zplFileName' not in config:
-        config['zplFileName'] = get_default('zplFileName')
-        if not str(config['zplFileName']).lower().endswith('.zpl'):
-            config['zplFileName'] = config['zplFileName'] + '.zpl'
-
-    # 1. --- Input File Path Resolution ---
-    if 'inputFilePath' not in config:
-        raise ValueError('Required field "inputFilePath" does not exist in the config file!')
-    ifp_str = str(config['inputFilePath']).strip()
+    
+    if 'zplpInputDirectory' not in config:
+        raise ValueError('Required field "zplpInputDirectory" does not exist in the config file!')
+    ifp_str = str(config['zplpInputDirectory']).strip()
     if not ifp_str:
-        raise ValueError('"inputFilePath" cannot be blank.')
+        raise ValueError('"zplpInputDirectory" cannot be blank.')
     
-    # Resolve relative to the config file's directory
-    input_path = (base_dir / ifp_str).resolve()
-    if not input_path.is_file() or input_path.suffix.lower() != '.zplp':
-        raise ValueError(f'Invalid or missing input file path: {input_path}')
-    config['inputFilePath'] = input_path
+    zplp_input_dir = (base_dir / ifp_str).resolve()
+    zplp_input_dir.mkdir(parents=True, exist_ok=True)
+    config['zplpInputDirectory'] = zplp_input_dir
 
-    # 2. --- Output Directory Resolution ---
-    if 'outputDirectory' not in config:
-        raise ValueError('Required field "outputDirectory" does not exist in the config file!')
-    ofp_str = str(config['outputDirectory']).strip()
+    if 'pngOutputDirectory' not in config:
+        raise ValueError('Required field "pngOutputDirectory" does not exist in the config file!')
+    ofp_str = str(config['pngOutputDirectory']).strip()
     if not ofp_str:
-        raise ValueError('"outputDirectory" cannot be blank.')
+        raise ValueError('"pngOutputDirectory" cannot be blank.')
     
-    # Resolve and cleanly generate the directory if it doesn't exist yet
-    output_dir = (base_dir / ofp_str).resolve()
-    output_dir.mkdir(parents=True, exist_ok=True)
-    config['outputDirectory'] = output_dir
+    png_output_dir = (base_dir / ofp_str).resolve()
+    png_output_dir.mkdir(parents=True, exist_ok=True)
+    config['pngOutputDirectory'] = png_output_dir
+    
+    if 'zplOutputDirectory' not in config:
+        raise ValueError('Required field "zplOutputDirectory" does not exist in the config file!')
+    ofp_str = str(config['zplOutputDirectory']).strip()
+    if not ofp_str:
+        raise ValueError('"zplOutputDirectory" cannot be blank.')
+    
+    zpl_output_dir = (base_dir / ofp_str).resolve()
+    zpl_output_dir.mkdir(parents=True, exist_ok=True)
+    config['zplOutputDirectory'] = zpl_output_dir
 
-    # 3. --- Boolean Validation ---
+    if 'inputFileName' not in config:
+        raise ValueError('Required field "inputFileName" does not exist in the config file!')
+    if str(config['inputFileName']).lower().endswith('.zplp'):
+        config['inputFileName'] = str(config['inputFileName']).strip('.zplp')
+
     if 'isDevelopment' not in config:
         raise ValueError('Required field "isDevelopment" does not exist in the config file!')
     if not isinstance(config['isDevelopment'], bool):
         raise ValueError(f'"isDevelopment" must be a boolean.')
 
-    # 4. --- Conditional Check & Final Target Path Resolution ---
-    if not config['isDevelopment']:
-        if config['zplFileName'] is None or not str(config['zplFileName']).strip():
-            raise ValueError('"zplFileName" is required when "isDevelopment" is false!')
+    if 'showBoundaryBox' in config:
+        if not isinstance(config['showBoundaryBox'], bool):
+            raise ValueError(f'"showBoundaryBox" must be a boolean.')
 
-    # Convert the file names into absolute, ready-to-write file paths
-    if config['pngFileName']:
-        config['pngFilePath'] = (output_dir / str(config['pngFileName']).strip()).resolve()
-        
-    if config['zplFileName']:
-        config['zplFilePath'] = (output_dir / str(config['zplFileName']).strip()).resolve()
+    config['inputFilePath'] = (config['zplpInputDirectory'] / ((str(config['inputFileName']).strip()) + '.zplp')).resolve()
+
+    config['pngFilePath'] = (config['pngOutputDirectory'] / ((str(config['inputFileName']).strip()) + '.png')).resolve()
+
+    config['zplFilePath'] = (config['zplOutputDirectory'] / ((str(config['inputFileName']).strip()) + '.zpl')).resolve()
 
     return config
 
 
-def run_parser_pipeline(config_fp: str, schema_fp: str):
+def run_parser_pipeline(config_fp: str):
     try:
         # 1. Validate configuration and get absolute paths
-        config = validate_config(config_fp, schema_fp)
-        
-        input_file: Path = Path(str(config['inputFilePath']))
+        config = validate_config(config_fp)
+
         is_dev: bool = bool(config['isDevelopment'])
-        
+        showBoundaryBox: bool = bool(config['showBoundaryBox'])
+
+        input_file: Path = Path(str(config['inputFilePath']))
+        print('\n==========================================\n')
         print(f"Parsing input file: {input_file.name}...")
         # Custom language parsing logic goes here:
-        zpl_gen = init_generator(str(input_file), is_dev)
+        zpl_gen = init_generator(str(input_file), is_dev, showBoundaryBox)
         zpl = zpl_gen.generate()
-        
-        # 2. Handle PNG Image Generation (Runs in both Dev and Production modes)
-        png_target: Path = Path(str(config['pngFilePath']))
-        print(f"Generating PNG visualization layout...")
-        zpl_gen.get_png(zpl, str(png_target))
-        # Mocking your PNG image generation payload
-        png_bytes =  png_target.read_bytes()
-        
-        # Write binary data to the resolved absolute path
-        png_target.write_bytes(png_bytes)
-        print(f"Success: PNG written to {png_target}")
+        print(zpl)
 
-        # 3. Handle ZPL File Generation (Runs ONLY when isDevelopment is False)
-        if not is_dev:
+        # 2. Handle PNG Image and ZPL File Generation
+        if is_dev:
+            png_target: Path = Path(str(config['pngFilePath']))
+
+            print(f"Generating PNG visualization layout...")
+            zpl_gen.get_png(zpl, str(png_target))
+
+            png_target.write_bytes(png_target.read_bytes())
+            print(f"Success: PNG written to {png_target}")
+
+        else:
             zpl_target: Path = Path(str(config['zplFilePath']))
             print(f"Generating production ZPL layout instructions...")
             
             # Write text data to the resolved absolute path
             zpl_target.write_text(zpl, encoding='utf-8')
             print(f"Success: Production ZPL script written to {zpl_target}")
-        else:
-            print("Skipping ZPL file output generation (Development Mode is Active).")
 
     except Exception as e:
-        print(f"Pipeline Execution Error: {e}")
+        print(f"Error: Pipeline Execution Error: {e}")
+        print("\n--- Detailed Traceback ---")
+        traceback.print_exc()  # <-- Add this line to print the full error stack
+        print("--------------------------\n")
 
-def init_generator(fp: str, isDev: bool) -> ZPL_Generator:
+def init_generator(fp: str, isDev: bool, showBoundaryBox: bool) -> ZPL_Generator:
 
     tokenizer = ZPLP_Tokenizer(fp)
     tokenizer.tokenize()
@@ -504,7 +511,7 @@ def init_generator(fp: str, isDev: bool) -> ZPL_Generator:
     parser = ZPLP_Parser(tokenizer.lines)
     abstract_tree = parser.parse()
 
-    generator = ZPL_Generator(abstract_tree, tokenizer.identifiers, isDev)
+    generator = ZPL_Generator(abstract_tree, tokenizer.identifiers, isDev, showBoundaryBox)
     return generator
     
 if __name__ == "__main__":
@@ -512,14 +519,12 @@ if __name__ == "__main__":
     # sys.argv[1] will be the first argument we pass from VS Code
     if len(sys.argv) < 2:
         print("Error: Missing configuration file path argument.")
-        print("Usage: python parser.py <path_to_zplp.json>")
         sys.exit(1)
         
     config_file_input = sys.argv[1]
     
     # We can automatically look for the schema in the same folder as the config file
     config_path = Path(config_file_input).resolve()
-    schema_path = config_path.parent / "zplp.schema.json"
     
     # Run your complete pipeline
-    run_parser_pipeline(str(config_path), str(schema_path))
+    run_parser_pipeline(str(config_path))

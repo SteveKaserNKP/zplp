@@ -1,0 +1,33 @@
+{
+    "$schema": "https://json-schema.org/draft-07/schema#",
+    "title": "ZPLP Parser Settings",
+    "type": "object",
+    "properties": {
+        "zplpInputDirectory": {
+            "type": "string",
+            "description": "The relative file path to the input .zplp files."
+        },
+        "isDevelopment": {
+            "type": "boolean",
+            "description": "If this is set to true, the placeholder values will be used in the generated ZPL code, and a PNG file will be generated with the example label."
+        },
+        "pngOutputDirectory": {
+            "type": "string",
+            "description": "The relative directory path where generated PNGs should be saved."
+        },
+        "zplOutputDirectory": {
+            "type": "string",
+            "description": "The relative directory path where generated ZPLs should be saved."
+        },
+        "inputFileName": {
+            "type": "string",
+            "description": "The name of the input ZPLP file."
+        },
+        "showBoundaryBox": {
+            "type": "boolean",
+            "description": "Determines whether to show the boundary box as defined by the MARGINS in the file. This flag will only be relevant if `isDevelopment` is true.",
+            "default": true
+        }
+    },
+    "required": ["zplpInputDirectory", "isDevelopment", "pngOutputDirectory", "zplOutputDirectory"]
+}

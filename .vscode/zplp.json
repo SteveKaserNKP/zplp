@@ -1,0 +1,8 @@
+{
+    "zplpInputDirectory": "./zplp",
+    "pngOutputDirectory": "./tmp",
+    "zplOutputDirectory": "./zpl",
+    "isDevelopment": true,
+    "showBoundaryBox": true,
+    "inputFileName": "HondaRedLabel_Large_4.25x2.75"
+}
