@@ -1,0 +1,267 @@
+DEF SMALL_FONT 0N,15,18
+DEF MED_FONT 0N,20,30
+DEF LARGE_FONT 0N,30,40
+
+DEF FULL_WIDTH_LINE 780,3,3,B,0
+
+DEF LINEAR_BARCODE_CONFIG_VALUES 2,2.7,10
+DEF CODE39_CONFIG_VALUES N,N,50,N,N
+
+BEGIN_DOCUMENT
+
+    BEGIN_SECTION::Label/Printer Setup
+     BEGIN_FIELD::Label/Printer Setup
+            TYPE SETUP
+            DPMM 8
+            DIMENSIONS 102, 63
+            MARGINS 1,1,1,1
+        END_FIELD
+    END_SECTION
+
+    BEGIN_SECTION::PART NO. BLOCK
+
+        BEGIN_FIELD::Part No. text
+            TYPE TEXT
+            POSITION 0, 25
+            FONT *MED_FONT
+            VALUE PART NO.
+        END_FIELD
+
+        BEGIN_FIELD::(P) text
+            TYPE TEXT
+            POSITION 0, 50
+            FONT *SMALL_FONT
+            VALUE (P)
+        END_FIELD
+
+        BEGIN_FIELD::Part No. data
+            TYPE TEXT
+            POSITION 200, 50
+            FONT *LARGE_FONT
+            VALUE {PART_NO::3880069F A000M1}
+        END_FIELD
+
+        BEGIN_FIELD::Part No. barcode
+            TYPE LINEAR_BARCODE_CODE39
+            POSITION 100,65
+            LINEAR_BARCODE_CONFIG *LINEAR_BARCODE_CONFIG_VALUES
+            CODE39_CONFIG *CODE39_CONFIG_VALUES
+            VALUE {PART_NO_BARCODE::P3880069F A000M1}
+        END_FIELD
+
+        BEGIN_FIELD::Line under Part No. field
+            TYPE GRAPHIC_BOX
+            POSITION 0,122
+            BOX *FULL_WIDTH_LINE
+        END_FIELD
+
+    END_SECTION::PART NO. BLOCK
+
+    BEGIN_SECTION::COLOR/DESCRIPTION/SUPPLIER LOT NO/SUPPLIER PART NO
+
+        BEGIN_FIELD::Part No. Ext text
+            TYPE TEXT
+            POSITION 0, 145
+            FONT *MED_FONT
+            VALUE PART NO. EXT
+        END_FIELD
+
+        BEGIN_FIELD::(C) text
+            TYPE TEXT
+            POSITION 0, 170
+            FONT *SMALL_FONT
+            VALUE (C)
+        END_FIELD
+
+        BEGIN_FIELD::Color barcode
+            TYPE LINEAR_BARCODE_CODE39
+            POSITION 0,185
+            LINEAR_BARCODE_CONFIG *LINEAR_BARCODE_CONFIG_VALUES
+            CODE39_CONFIG *CODE39_CONFIG_VALUES
+            VALUE {COLOR_BARCODE::CNH911TS}
+        END_FIELD
+
+        BEGIN_FIELD::Color Code text
+            TYPE TEXT
+            POSITION 200,170
+            FONT *LARGE_FONT
+            VALUE {COLOR::NH911TS}
+        END_FIELD
+
+        BEGIN_FIELD::Line between Color and Description/Supplier info
+            TYPE GRAPHIC_BOX
+            POSITION 450,122
+            BOX 3,122,3
+        END_FIELD
+
+        BEGIN_FIELD::DESCRIPTION text
+            TYPE TEXT
+            POSITION 455,145
+            FONT *MED_FONT
+            VALUE DESCRIPTION
+        END_FIELD
+
+        BEGIN_FIELD::Description data
+            TYPE TEXT
+            POSITION 460, 170
+            FONT *SMALL_FONT
+            VALUE {DESCRIPTION::COMPRESSOR}
+        END_FIELD
+
+        BEGIN_FIELD::Line under Description and Supplier info
+            TYPE GRAPHIC_BOX
+            POSITION 450,175
+            BOX 332,3,3
+        END_FIELD
+
+        BEGIN_FIELD::LOT # text
+            TYPE TEXT
+            POSITION 455, 195
+            FONT *SMALL_FONT
+            VALUE LOT #
+        END_FIELD
+
+        BEGIN_FIELD::LOT # data
+            TYPE TEXT
+            POSITION 460, 212
+            FONT *SMALL_FONT
+            VALUE {MFG_LOT_NO::12345}
+        END_FIELD
+
+        BEGIN_FIELD::SPLR PART # text
+            TYPE TEXT
+            POSITION 455, 228
+            FONT *SMALL_FONT
+            VALUE SPLR PART #
+        END_FIELD
+
+        BEGIN_FIELD::SPLR Part # data
+            TYPE TEXT
+            POSITION 460, 243
+            FONT *SMALL_FONT
+            VALUE {SUPPLIER_PART_NO::388006MA A000M1}
+        END_FIELD
+
+        BEGIN_FIELD::Line under Color and Description/Supplier info
+            TYPE GRAPHIC_BOX
+            POSITION 0,244
+            BOX *FULL_WIDTH_LINE
+        END_FIELD
+
+    END_SECTION::COLOR/DESRIPTION/SUPPLIER LOT NO/SUPPLIER PART NO
+
+    BEGIN_SECTION::DC PART LEVEL/QUANTITY
+
+        BEGIN_FIELD::D/C Part Level text
+            TYPE TEXT
+            POSITION 0, 270
+            FONT *MED_FONT
+            VALUE D/C Part Level
+        END_FIELD
+
+        BEGIN_FIELD::(2P) text
+            TYPE TEXT
+            POSITION 0, 290
+            FONT *SMALL_FONT
+            VALUE (2P)
+        END_FIELD
+
+        BEGIN_FIELD::DC Part Level barcode
+            TYPE LINEAR_BARCODE_CODE39
+            POSITION 0,300
+            LINEAR_BARCODE_CONFIG *LINEAR_BARCODE_CONFIG_VALUES
+            CODE39_CONFIG *CODE39_CONFIG_VALUES
+            VALUE {DC_PART_LEVEL_BARCODE::2P01 35}
+        END_FIELD
+
+        BEGIN_FIELD::DC Part Level text
+            TYPE TEXT
+            POSITION 200,290
+            FONT *LARGE_FONT
+            VALUE {DC_PART_LEVEL::21 35}
+        END_FIELD
+
+        BEGIN_FIELD::Line between Color and Description/Supplier info
+            TYPE GRAPHIC_BOX
+            POSITION 450,244
+            BOX 3,122,3
+        END_FIELD
+
+        BEGIN_FIELD::Qty barcode
+            TYPE LINEAR_BARCODE_CODE39
+            POSITION 475,255
+            LINEAR_BARCODE_CONFIG *LINEAR_BARCODE_CONFIG_VALUES
+            CODE39_CONFIG *CODE39_CONFIG_VALUES
+            VALUE {QUANTITY_BARCODE::Q80}
+        END_FIELD
+
+        BEGIN_FIELD::QUANTITY data
+            TYPE TEXT
+            POSITION 525,335
+            FONT *LARGE_FONT
+            VALUE {QUANTITY::80}
+        END_FIELD
+
+        BEGIN_FIELD::QUANTITY (Q) text
+            TYPE TEXT
+            POSITION 475,360
+            FONT *MED_FONT
+            VALUE QUANTITY (Q)
+        END_FIELD
+
+        BEGIN_FIELD::Line under Color and Description/Supplier info
+            TYPE GRAPHIC_BOX
+            POSITION 0,366
+            BOX *FULL_WIDTH_LINE
+        END_FIELD
+
+    END_SECTION::DC PART LEVEL/QUANTITY
+
+    BEGIN_SECTION::SERIAL NO
+
+        BEGIN_FIELD::Serial text
+            TYPE TEXT
+            POSITION 0,390
+            FONT *MED_FONT
+            VALUE SERIAL
+        END_FIELD
+
+        BEGIN_FIELD::1S text
+            TYPE TEXT
+            POSITION 0,410
+            FONT *SMALL_FONT
+            VALUE (1S)
+        END_FIELD
+
+        BEGIN_FIELD::Serial No data
+            TYPE TEXT
+            POSITION 175,410
+            FONT *LARGE_FONT
+            VALUE {SERIAL_NO::NKP00000-12345678}
+        END_FIELD
+
+        BEGIN_FIELD::Serial No barcode
+            TYPE LINEAR_BARCODE_CODE39
+            POSITION 75,420
+            LINEAR_BARCODE_CONFIG *LINEAR_BARCODE_CONFIG_VALUES
+            CODE39_CONFIG *CODE39_CONFIG_VALUES
+            VALUE {SERIAL_NO_BARCODE::1SNKP0000012345678}
+        END_FIELD
+
+        BEGIN_FIELD::Country of Origin
+            TYPE TEXT
+            POSITION 0,490
+            FONT *SMALL_FONT
+            VALUE {COUNTRY_OF_ORIGIN::Made in USA}
+        END_FIELD
+
+        BEGIN_FIELD::Supplier Address
+            TYPE TEXT
+            POSITION 300,490
+            FONT *SMALL_FONT
+            VALUE {SUPPLIER_ADDRESS::777 S Kuther Rd Sidney, OH 45365}
+        END_FIELD
+
+    END_SECTION::SERIAL_NO
+
+END_DOCUMENT

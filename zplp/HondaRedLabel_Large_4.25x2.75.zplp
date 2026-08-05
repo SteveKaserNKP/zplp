@@ -1,0 +1,100 @@
+DEF SMALL_FONT 0N,15,18
+DEF MED_FONT 0N,20,30
+DEF LARGE_FONT 0N,30,40
+
+DEF FULL_WIDTH_LINE 780,3,3,B,0
+
+DEF LINEAR_BARCODE_CONFIG_VALUES 2,3.0,10
+DEF CODE39_CONFIG_VALUES N,N,100,N,N
+
+BEGIN_DOCUMENT
+    BEGIN_SECTION::Label/Printer Setup
+        BEGIN_FIELD::Label/Printer Setup
+            TYPE SETUP
+            DPMM 8
+            DIMENSIONS 105, 60
+            MARGINS 16,3,3,3
+        END_FIELD
+    END_SECTION::Label/Printer Setup
+
+    BEGIN_SECTION::Part No. Field
+        BEGIN_FIELD::Part No. text data
+            TYPE TEXT
+            POSITION 25, 35
+            FONT *LARGE_FONT
+            VALUE {PART_NO::06200-5B7-306RM}
+        END_FIELD
+
+        BEGIN_FIELD::Part No. barcode
+            TYPE LINEAR_BARCODE_CODE39
+            POSITION 25,45
+            LINEAR_BARCODE_CONFIG *LINEAR_BARCODE_CONFIG_VALUES
+            CODE39_CONFIG *CODE39_CONFIG_VALUES
+            VALUE {PART_NO_BARCODE::06200-5B7-306RM}
+        END_FIELD
+    END_SECTION::Part No. Field
+
+    BEGIN_SECTION::Quantity Field
+        BEGIN_FIELD::Quantity barcode
+            TYPE LINEAR_BARCODE_CODE39
+            POSITION 25,175
+            LINEAR_BARCODE_CONFIG *LINEAR_BARCODE_CONFIG_VALUES
+            CODE39_CONFIG *CODE39_CONFIG_VALUES
+            VALUE {QUANTITY_BARCODE::1}
+        END_FIELD
+        BEGIN_FIELD::Quantity text data
+            TYPE TEXT
+            POSITION 175, 200
+            FONT *LARGE_FONT
+            VALUE {QUANTITY::1}
+        END_FIELD
+    END_SECTION::Quantity Field
+
+    BEGIN_SECTION::Other Data
+        BEGIN_FIELD::VC text
+            TYPE TEXT
+            POSITION 450, 200
+            FONT *MED_FONT
+            VALUE VC
+        END_FIELD
+        BEGIN_FIELD::VC data
+            TYPE TEXT
+            POSITION 500, 200
+            FONT *MED_FONT
+            VALUE {VC::001732}
+        END_FIELD
+        BEGIN_FIELD::CP text
+            TYPE TEXT
+            POSITION 450, 230
+            FONT *MED_FONT
+            VALUE CP
+        END_FIELD
+        BEGIN_FIELD::VC data
+            TYPE TEXT
+            POSITION 500, 230
+            FONT *MED_FONT
+            VALUE {CP::NKP}
+        END_FIELD
+        BEGIN_FIELD::JD text
+            TYPE TEXT
+            POSITION 450, 260
+            FONT *MED_FONT
+            VALUE JD
+        END_FIELD
+        BEGIN_FIELD::VC data
+            TYPE TEXT
+            POSITION 500, 260
+            FONT *MED_FONT
+            VALUE {JD::23130}
+        END_FIELD
+    END_SECTION::Other Data
+
+    BEGIN_SECTION::Assembled in USA
+        BEGIN_FIELD::JD text
+            TYPE TEXT
+            POSITION 25, 310
+            FONT *SMALL_FONT
+            VALUE Assembled in USA
+        END_FIELD        
+    END_SECTION::Assembled in USA
+END_DOCUMENT
